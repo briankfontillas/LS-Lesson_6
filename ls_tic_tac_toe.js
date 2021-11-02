@@ -2,6 +2,7 @@ const readline = require('readline-sync');
 const INITIAL_MARKER = ' ';
 const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
+const WIN = 5;
 
 function displayBoard(board) {
   console.clear();
@@ -41,11 +42,22 @@ function emptySquares(board){
   return Object.keys(board).filter(key => board[key] === INITIAL_MARKER);
 }
 
+function joinOr(options, separator = ', ', lastSep = 'or') {
+  let numsBeforeOr = options.slice(0, options.length - 1);
+
+  if (options.length === 0 || options.length === 1) {
+    return `${options.join('')}`;
+  }
+
+  return `${numsBeforeOr.join(separator)} ${lastSep} ${options[options.length - 1]}`;
+}
+
 function playerChoosesSquare(board) {
   let square;
 
   while (true) {
-    prompt(`Please choose a square ${emptySquares(board).join(', ')}:`);
+    prompt('Please choose a square');
+    console.log(`Squares to choose from: ${joinOr(emptySquares(board))}:`);
     square = readline.question().trim();
     if (emptySquares(board).includes(square)) break;
 
@@ -96,6 +108,15 @@ let winningLines = [
 
   return null;
 }
+
+function matchWinner(myPoints, compPoints) {
+  if (myPoints === WIN) return 'Player';
+  if (compPoints === WIN) return 'Computer';
+}
+
+let playerScore = 0;
+let computerScore = 0;
+
 while (true) {
   let board = initializeBoard();
 
@@ -113,14 +134,21 @@ while (true) {
 
   if (someoneWon(board)) {
     prompt(`${detectWinner(board)} won!`);
+    detectWinner(board) === 'Player' ? playerScore += 1 : computerScore += 1;
   } else {
     prompt("It's a tie!");
+  }
+
+  console.log(`Player's Score: ${playerScore}\nComputer's Score: ${computerScore}\n`);
+
+  if (playerScore === WIN || computerScore === WIN) {
+    prompt(`${matchWinner(playerScore, computerScore)} Wins the Game!\n`);
+    break;
   }
 
   prompt('Would you like to play again? (y/n)');
   let answer = readline.question().toLowerCase()[0];
   if (answer !== 'y') break;
-
 }
 
 prompt('Thanks for playing!');
