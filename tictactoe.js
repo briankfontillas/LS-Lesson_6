@@ -4,10 +4,17 @@ const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
 const WINNING_SCORE = 5;
 
-function displayBoard(board) {
+function displayBoard(board, playerPoints, compPoints) {
   console.clear();
 
+  console.log("---------------------------")
   console.log(`You are ${HUMAN_MARKER}. Computer is ${COMPUTER_MARKER}.`);
+
+  console.log(`Player points: ${playerPoints}`);
+  console.log(`Computer points: ${compPoints}`);
+
+  console.log("---------------------------")
+
 
   console.log("");
   console.log('     |     |');
@@ -21,7 +28,10 @@ function displayBoard(board) {
   console.log('     |     |');
   console.log(`  ${board['7']}  |  ${board['8']}  |  ${board['9']}`);
   console.log('     |     |');
+
+  console.log('');
 }
+
 
 function createNewBoard() { //Initializing board to be all blank spaces
   let board = {};
@@ -107,37 +117,71 @@ function detectWinner(board) {
   return null;
 }
 
+function findAtRiskSquare(board) {
+
+}
+
 function someoneWon(board) {
   return !!detectWinner(board);
 }
 
-
-while (true) { //new game loop
-  let board = createNewBoard();
-
-  while (true) { //turn loop
-    displayBoard(board);
-
-    playerChoosesSquare(board);
-    if (someoneWon(board) || boardFull(board)) break;
-
-    computerChoosesSquare(board);
-    displayBoard(board);
-
-    if (someoneWon(board) || boardFull(board)) break;
-  }
-
-    displayBoard(board);
-
-  if (someoneWon(board)) {
-    prompt(`${detectWinner(board)} won!`);
+function matchWinner(player, comp, playerPoints, compPoints) {
+  if (playerPoints > compPoints) {
+    prompt(`${player} wins the Match!`);
   } else {
-    prompt('TIE GAME');
+    prompt(`${comp} wins the Match!`);
   }
+}
+
+///////////
+//Game code below
+//////////
+
+while (true) {
+  let scoreBoard = {
+    'Player': 0,
+    'Computer': 0
+  };
+
+  while (!Object.values(scoreBoard).includes(WINNING_SCORE)) {
+    let board = createNewBoard();
+
+    while (true) { //turn loop
+      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+
+      playerChoosesSquare(board);
+      if (someoneWon(board) || boardFull(board)) break;
+
+      computerChoosesSquare(board);
+      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+
+      if (someoneWon(board) || boardFull(board)) break;
+    }
+
+      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+
+    if (someoneWon(board)) {
+      prompt(`${detectWinner(board)} won!`);
+      if (detectWinner(board) === 'Player') {
+        scoreBoard['Player'] += 1;
+      } else if (detectWinner(board) === 'Computer') {
+        scoreBoard['Computer'] += 1;
+      }
+    }
+
+    displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+  }
+
+  matchWinner(HUMAN_MARKER, COMPUTER_MARKER,
+              scoreBoard['Player'], scoreBoard['Computer'] );
 
   prompt('Would you like to play again? (y/n)');
-  let answer = readline.question().toLowerCase()[0];
-  if (answer !== 'y') break;
+  let again = readline.question().trim().toLowerCase();
+
+  if (again !== 'y') break;
+
+
+
 }
 
 prompt('Thanks for playing Tic-Tac-Toe!');
