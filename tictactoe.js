@@ -1,8 +1,14 @@
 const readline = require('readline-sync');
+const MIDDLE_SPACE = 5;
 const UNMARKED_SPACE = ' ';
 const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
 const WINNING_SCORE = 5;
+const WINNING_LINES = [
+  [1, 2, 3], [4, 5, 6], [7, 8, 9], //rows
+  [1, 4, 7], [2, 5, 8], [3, 6, 9], //columns
+  [1, 5, 9], [3, 5, 7]             //diagonals
+];
 
 function displayBoard(board, playerPoints, compPoints) {
   console.clear();
@@ -79,10 +85,48 @@ function playerChoosesSquare(board) {
 }
 
 function computerChoosesSquare(board) {
-  let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
-  let square = emptySquares(board)[randomIndex];
+  let square;
+
+  // offensive
+  for (let index = 0; index < WINNING_LINES.length; index +=1) {
+    let line = WINNING_LINES[index];
+    square = findAtRiskSquare(line, board, COMPUTER_MARKER);
+    if (square) break;
+  }
+
+  // defensive
+  if (!square) {
+    for (let index = 0; index < WINNING_LINES.length; index +=1) {
+      let line = WINNING_LINES[index];
+      square = findAtRiskSquare(line, board, HUMAN_MARKER);
+      if (square) break;
+    }
+  }
+
+  if (board[MIDDLE_SPACE] === UNMARKED_SPACE) {
+    square = MIDDLE_SPACE;
+  }
+
+  //random
+  if (!square) {
+    let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
+    square = emptySquares(board)[randomIndex];
+  }
 
   board[square] = COMPUTER_MARKER;
+}
+
+function findAtRiskSquare(line, board, marker) {
+  let markersInLine = line.map(square => board[square]);
+
+  if (markersInLine.filter(value => value === HUMAN_MARKER).length === 2) {
+    let unusedSquare = line.find(square => board[square] === UNMARKED_SPACE);
+    if (unusedSquare !== undefined) {
+      return unusedSquare;
+    }
+  }
+
+  return null;
 }
 
 function boardFull(board) { //if array from emptySquares has no elements
@@ -90,14 +134,9 @@ function boardFull(board) { //if array from emptySquares has no elements
 }
 
 function detectWinner(board) {
-  let winningLines = [
-    [1, 2, 3], [4, 5, 6], [7, 8, 9], //rows
-    [1, 4, 7], [2, 5, 8], [3, 6, 9], //columns
-    [1, 5, 9], [3, 5, 7]             //diagonals
-  ];
 
-  for (let line = 0; line < winningLines.length; line++) {
-    let [ sq1, sq2, sq3 ] = winningLines[line];
+  for (let line = 0; line < WINNING_LINES.length; line++) {
+    let [ sq1, sq2, sq3 ] = WINNING_LINES[line];
 
     if (
       board[sq1] === HUMAN_MARKER &&
@@ -115,10 +154,6 @@ function detectWinner(board) {
   }
 
   return null;
-}
-
-function findAtRiskSquare(board) {
-
 }
 
 function someoneWon(board) {
