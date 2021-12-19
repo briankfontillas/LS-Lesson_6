@@ -1,4 +1,5 @@
 const readline = require('readline-sync');
+const PLAYERS = ["player", "computer"];
 const MIDDLE_SPACE = 5;
 const UNMARKED_SPACE = ' ';
 const HUMAN_MARKER = 'X';
@@ -9,6 +10,7 @@ const WINNING_LINES = [
   [1, 4, 7], [2, 5, 8], [3, 6, 9], //columns
   [1, 5, 9], [3, 5, 7]             //diagonals
 ];
+let SPOT = Math.floor(Math.random() * PLAYERS.length);
 
 function displayBoard(board, playerPoints, compPoints) {
   console.clear();
@@ -119,7 +121,7 @@ function computerChoosesSquare(board) {
 function findAtRiskSquare(line, board, marker) {
   let markersInLine = line.map(square => board[square]);
 
-  if (markersInLine.filter(value => value === HUMAN_MARKER).length === 2) {
+  if (markersInLine.filter(value => value === marker).length === 2) {
     let unusedSquare = line.find(square => board[square] === UNMARKED_SPACE);
     if (unusedSquare !== undefined) {
       return unusedSquare;
@@ -168,43 +170,74 @@ function matchWinner(player, comp, playerPoints, compPoints) {
   }
 }
 
+function currentPlayerChooses(board, currentPlayer) {
+  if (currentPlayer === 'player') {
+    playerChoosesSquare(board);
+  } else {
+    computerChoosesSquare(board);
+  }
+}
+
 ///////////
 //Game code below
 //////////
-
 while (true) {
+  let firstTurnPlayer;
   let scoreBoard = {
     'Player': 0,
     'Computer': 0
   };
 
   while (!Object.values(scoreBoard).includes(WINNING_SCORE)) {
-    let board = createNewBoard();
+    prompt("Would you like to choose who goes first? (y/n)")
+    let chooseFirst = readline.question().toLowerCase().trim();
 
-    while (true) { //turn loop
-      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
-
-      playerChoosesSquare(board);
-      if (someoneWon(board) || boardFull(board)) break;
-
-      computerChoosesSquare(board);
-      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
-
-      if (someoneWon(board) || boardFull(board)) break;
+    while (!['y', 'n', 'yes', 'no'].includes(chooseFirst)) {
+      prompt('Invalid choice, please select yes or no (y/n)');
+      chooseFirst = readline.question().toLowerCase().trim();
     }
 
-      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+    if (['y', 'yes'].includes(chooseFirst)) {
+      prompt('Would you like to go first? (y/n)');
+      chooseFirstTurnPlayer = readline.question().toLowerCase().trim();
 
-    if (someoneWon(board)) {
-      prompt(`${detectWinner(board)} won!`);
-      if (detectWinner(board) === 'Player') {
-        scoreBoard['Player'] += 1;
-      } else if (detectWinner(board) === 'Computer') {
-        scoreBoard['Computer'] += 1;
+      while (!['y', 'n', 'yes', 'no'].includes(chooseFirstTurnPlayer)) {
+        prompt('Invalid choice, please select yes or no (y/n)');
+        chooseFirstTurnPlayer = readline.question().toLowerCase().trim();
+      }
+
+      if (['y', 'yes'].includes(chooseFirstTurnPlayer)) {
+        SPOT = 0;
+      } else if (['n', 'no'].inludes(chooseFirstTurnPlayer)) {
+        SPOT = 1;
       }
     }
 
-    displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+    while (!Object.values(scoreBoard).includes(WINNING_SCORE)) { //turn loop
+      let board = createNewBoard();
+
+      while (true) {
+        displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+        currentPlayerChooses(board, PLAYERS[SPOT]);
+        if (someoneWon(board) || boardFull(board)) break;
+        if (SPOT === 1) {
+          SPOT = 0;
+        } else {
+          SPOT = 1;
+        }
+      }
+
+      if (someoneWon(board)) {
+        prompt(`${detectWinner(board)} won!`);
+        if (detectWinner(board) === 'Player') {
+          scoreBoard['Player'] += 1;
+        } else if (detectWinner(board) === 'Computer') {
+          scoreBoard['Computer'] += 1;
+        }
+      }
+
+      displayBoard(board, scoreBoard['Player'], scoreBoard['Computer']);
+    }
   }
 
   matchWinner(HUMAN_MARKER, COMPUTER_MARKER,
@@ -213,9 +246,12 @@ while (true) {
   prompt('Would you like to play again? (y/n)');
   let again = readline.question().trim().toLowerCase();
 
-  if (again !== 'y') break;
+  while (!['y', 'n', 'yes', 'no'].includes(again)) {
+    prompt('Invalid choice, please select y or n');
+    again = readline.question().toLowerCase().trim();
+  }
 
-
+  if (!['y', 'yes'].includes(again)) break;
 
 }
 
