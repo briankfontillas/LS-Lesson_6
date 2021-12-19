@@ -12,17 +12,20 @@ const WINNING_LINES = [
 ];
 let SPOT = Math.floor(Math.random() * PLAYERS.length);
 
-function displayBoard(board, playerPoints, compPoints) {
-  console.clear();
-
-  console.log("---------------------------")
+function displayScore(playerPoints, compPoints) {
+  console.log("---------------------------");
   console.log(`You are ${HUMAN_MARKER}. Computer is ${COMPUTER_MARKER}.`);
 
   console.log(`Player points: ${playerPoints}`);
   console.log(`Computer points: ${compPoints}`);
 
-  console.log("---------------------------")
+  console.log("---------------------------");
+}
 
+function displayBoard(board, playerPoints, compPoints) {
+  console.clear();
+
+  displayScore(playerPoints, compPoints);
 
   console.log("");
   console.log('     |     |');
@@ -68,7 +71,6 @@ function joinOr(array, punc = ", ", beforeLastNum = " or ") {
 
 function emptySquares(board) {
   return Object.keys(board).filter(key => board[key] === UNMARKED_SPACE);
-   //returns an array based off keys that = ' ' in createNewBoard ([1,3,4...])
 }
 
 function playerChoosesSquare(board) {
@@ -90,7 +92,7 @@ function computerChoosesSquare(board) {
   let square;
 
   // offensive
-  for (let index = 0; index < WINNING_LINES.length; index +=1) {
+  for (let index = 0; index < WINNING_LINES.length; index += 1) {
     let line = WINNING_LINES[index];
     square = findAtRiskSquare(line, board, COMPUTER_MARKER);
     if (square) break;
@@ -98,16 +100,14 @@ function computerChoosesSquare(board) {
 
   // defensive
   if (!square) {
-    for (let index = 0; index < WINNING_LINES.length; index +=1) {
+    for (let index = 0; index < WINNING_LINES.length; index += 1) {
       let line = WINNING_LINES[index];
       square = findAtRiskSquare(line, board, HUMAN_MARKER);
       if (square) break;
     }
   }
 
-  if (board[MIDDLE_SPACE] === UNMARKED_SPACE) {
-    square = MIDDLE_SPACE;
-  }
+  if (board[MIDDLE_SPACE] === UNMARKED_SPACE) square = MIDDLE_SPACE;
 
   //random
   if (!square) {
@@ -182,14 +182,13 @@ function currentPlayerChooses(board, currentPlayer) {
 //Game code below
 //////////
 while (true) {
-  let firstTurnPlayer;
   let scoreBoard = {
-    'Player': 0,
-    'Computer': 0
+    Player: 0,
+    Computer: 0
   };
 
   while (!Object.values(scoreBoard).includes(WINNING_SCORE)) {
-    prompt("Would you like to choose who goes first? (y/n)")
+    prompt("Would you like to choose who goes first? (y/n)");
     let chooseFirst = readline.question().toLowerCase().trim();
 
     while (!['y', 'n', 'yes', 'no'].includes(chooseFirst)) {
@@ -199,7 +198,7 @@ while (true) {
 
     if (['y', 'yes'].includes(chooseFirst)) {
       prompt('Would you like to go first? (y/n)');
-      chooseFirstTurnPlayer = readline.question().toLowerCase().trim();
+      let chooseFirstTurnPlayer = readline.question().toLowerCase().trim();
 
       while (!['y', 'n', 'yes', 'no'].includes(chooseFirstTurnPlayer)) {
         prompt('Invalid choice, please select yes or no (y/n)');
@@ -208,7 +207,7 @@ while (true) {
 
       if (['y', 'yes'].includes(chooseFirstTurnPlayer)) {
         SPOT = 0;
-      } else if (['n', 'no'].inludes(chooseFirstTurnPlayer)) {
+      } else if (['n', 'no'].includes(chooseFirstTurnPlayer)) {
         SPOT = 1;
       }
     }
@@ -231,8 +230,10 @@ while (true) {
         prompt(`${detectWinner(board)} won!`);
         if (detectWinner(board) === 'Player') {
           scoreBoard['Player'] += 1;
+          SPOT = 1;
         } else if (detectWinner(board) === 'Computer') {
           scoreBoard['Computer'] += 1;
+          SPOT = 0;
         }
       }
 
@@ -240,8 +241,7 @@ while (true) {
     }
   }
 
-  matchWinner(HUMAN_MARKER, COMPUTER_MARKER,
-              scoreBoard['Player'], scoreBoard['Computer'] );
+  matchWinner(HUMAN_MARKER, COMPUTER_MARKER, scoreBoard['Player'], scoreBoard['Computer'] );
 
   prompt('Would you like to play again? (y/n)');
   let again = readline.question().trim().toLowerCase();
