@@ -123,27 +123,48 @@ function hitOrStay(deck, hand, currentPlayer) {
 function dealerHits(deck, hand, currentPlayer) {
   if (addCards(hand[currentPlayer]) < 17) {
     hit(deck, hand, currentPlayer);
-    prompt('Dealer Hits!');
     return true;
   }
 
-  prompt('Dealer Stays.');
+  prompt("Dealer is going to stay.");
   return false;
 
 }
 
-function fullBoardDisplay() {
+function fullBoardDisplay(dealerHand = hideDealersCard(hands['dealer'])) {
+  console.clear();
   prompt('Dealers hand:');
-  displayAllCards(hideDealersCard(hands['dealer']));
+  displayAllCards(dealerHand);
   prompt('Your hand:');
   displayAllCards(hands['player']);
 }
 
 function checkBust(hand, currentPlayer) {
-  if (addCards(hand[currentPlayer]) >= MAX) return true;
+  if (addCards(hand[currentPlayer]) > MAX) return true;
 
   return false;
 }
+
+function sayWinner() {
+
+
+  if (addCards(hands['player']) > addCards(hands['dealer'])) {
+    prompt('Congratulations, you Win!');
+  } else if (addCards(hands['player']) < addCards(hands['dealer'])) {
+    prompt('Dealer Wins!');
+  } else {
+    prompt('TIE GAME!');
+  }
+}
+
+// function bustWin() { ////////FIX
+//   if (checkBust(hands, 'player')) {
+//     prompt('You bust!\nDealer Wins!');
+//     return true;
+//   } else if (!!checkBust(hands, 'dealer')) {
+//     prompt('Dealer busts!\n You Win!');
+//     return true;
+// }
 
 
 let deck = initializeDeck();
@@ -154,36 +175,50 @@ let hands = {
 
 while (true) {
   prompt('Lets play 21!');
+  console.log('*Best played on full screen');
   console.log('');
+
   shuffleDeck(deck);
   startingDeal(deck, hands);
+
+  let proceed = readline.question("Enter anything to continue...");
 
   while (true) {
     fullBoardDisplay();
     addCards(hands['player']); ///////////////////
 
     while (hitOrStay(deck, hands, 'player') !== 's') {
-      if (checkBust(hands, 'player')) break;
-      console.clear();
+      if (checkBust(hands, 'player') || addCards(hands['player']) === MAX) break;
       fullBoardDisplay();
     }
 
+    fullBoardDisplay();
     if (checkBust(hands, 'player')) break;
 
     while (dealerHits(deck, hands, 'dealer')) {
-      if (checkBust(hands, 'dealer')) break;
-      let proceed = readline.question("Enter anything to continue...");
+      prompt("Dealer is choosing to hit!");
+
+      if (checkBust(hands, 'dealer') || addCards(hands['dealer']) === MAX) break;
+
+      proceed = readline.question("Enter anything to continue...");
+      fullBoardDisplay();
     }
-
-
-
-    fullBoardDisplay();
 
 
 
     break;
   }
-  break;
+
+  fullBoardDisplay(hands['dealer']);
+
+  // if (!!bustwin()) {// FIX
+  //   bustWin();
+  //   break;
+  // } else {
+  //   sayWinner();
+  //   break;
+  // }
+
 }
 
 console.log(hands);
