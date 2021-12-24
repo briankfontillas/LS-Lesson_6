@@ -76,6 +76,7 @@ function hideDealersCard(hand) { //takes dealers hand
 function addCards(hand) {
   let currentSum = 0;
   let count = 0;
+  hand = sortAces(hand);
 
   for (let card = 0; card < hand.length; card += 1) {
     let value = hand[card][CARD];
@@ -89,19 +90,18 @@ function addCards(hand) {
     }
   }
 
-  // while (currentSum > MAX && minimizeAces(hand).includes('A')) {
-  //   console.log(minimizeAces(hand))
-  //   console.log(minimizeAces(hand)[count])
-  //   if (minimizeAces(hand)[count] !== undefined) {
-  //     minimizeAces(hand)[count] = undefined
-  //     currentSum -= 10;
-  //     count += 1;
-  //   } else {
-  //     break;
-  //   }
+  return currentSum;
+}
+
+function sortAces(hand) {
+  let subsWithAces = [];
+  let noAces = hand.filter(subArray => subArray[1] !== 'A');
+
+  for (let card = 0; card < hand.length; card += 1) {
+    if (hand[card][CARD] === 'A') subsWithAces.push(hand[card]);
   }
 
-  return currentSum;
+  return noAces.concat(subsWithAces);
 }
 
 function hitOrStay(deck, hand, currentPlayer) {
@@ -118,6 +118,18 @@ function hitOrStay(deck, hand, currentPlayer) {
     prompt(`${currentPlayer} chooses to stay.`);
     return move;
   }
+}
+
+function dealerHits(deck, hand, currentPlayer) {
+  if (addCards(hand[currentPlayer]) < 17) {
+    hit(deck, hand, currentPlayer);
+    prompt('Dealer Hits!');
+    return true;
+  }
+
+  prompt('Dealer Stays.');
+  return false;
+
 }
 
 function fullBoardDisplay() {
@@ -140,7 +152,6 @@ let hands = {
   player: []
 };
 
-
 while (true) {
   prompt('Lets play 21!');
   console.log('');
@@ -152,10 +163,19 @@ while (true) {
     addCards(hands['player']); ///////////////////
 
     while (hitOrStay(deck, hands, 'player') !== 's') {
-      console.log(checkBust(hands, 'player'));
       if (checkBust(hands, 'player')) break;
+      console.clear();
       fullBoardDisplay();
     }
+
+    if (checkBust(hands, 'player')) break;
+
+    while (dealerHits(deck, hands, 'dealer')) {
+      if (checkBust(hands, 'dealer')) break;
+      let proceed = readline.question("Enter anything to continue...");
+    }
+
+
 
     fullBoardDisplay();
 
@@ -165,7 +185,5 @@ while (true) {
   }
   break;
 }
-
-addCards([[2, 'A'], [1, 10], [1, 5], [2, 6]]);
 
 console.log(hands);
