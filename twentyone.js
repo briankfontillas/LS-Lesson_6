@@ -113,9 +113,7 @@ function hitOrStay(deck, hand, currentPlayer) {
   }
 
   if (move === 'h') hit(deck, hand, currentPlayer);
-  if (move === 's') {
-    return null;
-  }
+  if (move === 's') return 's';
 }
 
 function dealerHits(deck, hand, currentPlayer) {
@@ -175,6 +173,7 @@ while (true) {
     dealer: [],
     player: []
   };
+
   console.clear();
   prompt('Lets play 21!');
   console.log('*Best played on full screen');
@@ -191,6 +190,7 @@ while (true) {
 
     while (hitOrStay(deck, hands, 'player') !== 's') {
       if (checkBust(hands, 'player') || addCards(hands['player']) === MAX) break;
+      
       fullBoardDisplay();
     }
 
