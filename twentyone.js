@@ -1,7 +1,6 @@
 const readline = require('readline-sync');
 const PLAYERS = ['player', 'dealer'];
 const WINNING_SCORE = 5;
-const MAX = 21;
 const UNKNOWN = ['?', '?'];
 const CARD = 1;
 const SUITS = ['H', 'D', 'C', 'S']; //hearts, diamonds, clubs, spades
@@ -81,9 +80,9 @@ function addCards(hand) {
 
     if (!['J', 'Q', 'K', 'A'].includes(value)) currentSum += value;
     if (['J', 'Q', 'K'].includes(value)) currentSum += 10;
-    if (value === 'A' && currentSum + 11 <= MAX) {
+    if (value === 'A' && currentSum + 11 <= max) {
       currentSum += 11;
-    } else if (value === 'A' && currentSum + 11 > MAX) {
+    } else if (value === 'A' && currentSum + 11 > max) {
       currentSum += 1;
     }
   }
@@ -116,7 +115,7 @@ function hitOrStay(deck, hand, currentPlayer) {
 }
 
 function dealerHits(deck, hand, currentPlayer) {
-  if (addCards(hand[currentPlayer]) < 17) {
+  if (addCards(hand[currentPlayer]) < dealerCuttoff) {
     hit(deck, hand, currentPlayer);
     return true;
   }
@@ -132,10 +131,11 @@ function fullBoardDisplay(dealerHand = hideDealersCard(hands['dealer'])) {
   displayAllCards(dealerHand);
   prompt('Your hand:');
   displayAllCards(hands['player']);
+  console.log(`Your Current value: ${addCards(hands['player'])}`);
 }
 
 function checkBust(hand, currentPlayer) {
-  if (addCards(hand[currentPlayer]) > MAX) return true;
+  if (addCards(hand[currentPlayer]) > max) return true;
 
   return false;
 }
@@ -191,13 +191,14 @@ let deck;
 let hands;
 let playerScore;
 let dealerScore;
+let max;
+let dealerCuttoff;
 
 while (true) {
   playerScore = 0;
   dealerScore = 0;
 
   console.clear();
-  prompt('Lets play 21!');
   console.log('*Best played on full screen');
 
   while (true) {
@@ -207,8 +208,21 @@ while (true) {
       player: []
     };
 
+    prompt('Choose a number between 2 - 10. Example: 2 = 21, 7 = 71');
+    max = Number(readline.question());
+
+    while (![2, 3, 4, 5, 6, 7, 8, 9, 10].includes(max)) {
+      prompt('Invalid number. Try again.');
+      max = Number(readline.question());
+    }
+
+    max = (max * 10) + 1;
+    dealerCuttoff = max - 4;
+
     shuffleDeck(deck);
     startingDeal(deck, hands);
+
+    prompt(`Lets play ${String(max)[0]}1!`);
 
     let proceed = readline.question("Enter anything to continue...");
 
@@ -217,7 +231,7 @@ while (true) {
       addCards(hands['player']);
 
       while (hitOrStay(deck, hands, 'player') !== 's') {
-        if (checkBust(hands, 'player') || (addCards(hands['player']) === MAX)) break;
+        if (checkBust(hands, 'player') || (addCards(hands['player']) === max)) break;
 
         fullBoardDisplay();
       }
@@ -233,7 +247,7 @@ while (true) {
         prompt("Dealer is choosing to hit!");
         proceed = readline.question("Enter anything to continue...");
 
-        if (checkBust(hands, 'dealer') || (addCards(hands['dealer']) === MAX)) break;
+        if (checkBust(hands, 'dealer') || (addCards(hands['dealer']) === max)) break;
       }
 
       fullBoardDisplay(hands['dealer']);
