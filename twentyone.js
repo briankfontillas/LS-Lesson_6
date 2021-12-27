@@ -1,13 +1,12 @@
 const readline = require('readline-sync');
 const PLAYERS = ['player', 'dealer'];
+const WINNING_SCORE = 5;
 const MAX = 21;
 const UNKNOWN = ['?', '?'];
 const CARD = 1;
 const SUITS = ['H', 'D', 'C', 'S']; //hearts, diamonds, clubs, spades
 const CARD_VALUES = [2, 3, 4, 5, 6, 7,
   8, 9, 10, 'J', 'Q', 'K', 'A'];
-let deck;
-let hands;
 
 function prompt(msg) {
   console.log(`=> ${msg}`);
@@ -172,53 +171,91 @@ function finalHands() {
   console.log(`You: ${addCards(hands['player'])}`);
 }
 
+function addPoints() {
+  switch (bustWin()) {
+    case 'player': return 'dealer';
+    case 'dealer': return 'player';
+    default: break;
+  }
+
+  if (addCards(hands['player']) > addCards(hands['dealer'])) {
+    return 'player';
+  } else if (addCards(hands['player']) < addCards(hands['dealer'])) {
+    return 'dealer';
+  }
+
+  return null;
+}
+
+let deck;
+let hands;
+let playerScore;
+let dealerScore;
+
 while (true) {
-  deck = initializeDeck();
-  hands = {
-    dealer: [],
-    player: []
-  };
+  playerScore = 0;
+  dealerScore = 0;
 
   console.clear();
   prompt('Lets play 21!');
   console.log('*Best played on full screen');
-  console.log('');
-
-  shuffleDeck(deck);
-  startingDeal(deck, hands);
-
-  let proceed = readline.question("Enter anything to continue...");
 
   while (true) {
-    fullBoardDisplay();
-    addCards(hands['player']); ///////////////////
+    deck = initializeDeck();
+    hands = {
+      dealer: [],
+      player: []
+    };
 
-    while (hitOrStay(deck, hands, 'player') !== 's') {
-      if (checkBust(hands, 'player') || addCards(hands['player']) === MAX) break;
+    shuffleDeck(deck);
+    startingDeal(deck, hands);
+
+    let proceed = readline.question("Enter anything to continue...");
+
+    while (true) {
+      fullBoardDisplay();
+      addCards(hands['player']);
+
+      while (hitOrStay(deck, hands, 'player') !== 's') {
+        if (checkBust(hands, 'player') || (addCards(hands['player']) === MAX)) break;
+
+        fullBoardDisplay();
+      }
 
       fullBoardDisplay();
+      if (checkBust(hands, 'player')) break;
+
+      prompt('Dealers turn');
+      proceed = readline.question('Enter anything to continue...');
+
+      while (dealerHits(deck, hands, 'dealer') === true) {
+        fullBoardDisplay();
+        prompt("Dealer is choosing to hit!");
+        proceed = readline.question("Enter anything to continue...");
+
+        if (checkBust(hands, 'dealer') || (addCards(hands['dealer']) === MAX)) break;
+      }
+
+      fullBoardDisplay(hands['dealer']);
+
+      break;
     }
 
-    fullBoardDisplay();
-    if (checkBust(hands, 'player')) break;
+    prompt(sayWinner());
+    if (addPoints() === 'player') playerScore += 1;
+    if (addPoints() === 'dealer') dealerScore += 1;
 
-    prompt('Dealers turn');
-    proceed = readline.question('Enter anything to continue...');
+    prompt('Current Score:');
+    console.log(`You: ${playerScore} | Dealer: ${dealerScore}`);
 
-    while (dealerHits(deck, hands, 'dealer') === true) {
-      fullBoardDisplay();
-      prompt("Dealer is choosing to hit!");
-      proceed = readline.question("Enter anything to continue...");
-
-      if (checkBust(hands, 'dealer') || addCards(hands['dealer']) === MAX) break;
-    }
-
-    fullBoardDisplay(hands['dealer']);
-
-    break;
+    if (playerScore === WINNING_SCORE || dealerScore === WINNING_SCORE) break;
   }
 
-  prompt(sayWinner());
+  if (playerScore > dealerScore) {
+    prompt('You Won the Match!');
+  } else {
+    prompt('Dealer Won the Match!');
+  }
 
   prompt('Would you like to play again? (y/n)');
   let playAgain = readline.question().toLowerCase().trim();
