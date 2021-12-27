@@ -142,29 +142,34 @@ function checkBust(hand, currentPlayer) {
 }
 
 function sayWinner() {
-  if (bustWin() === true) return null;
+  finalHands();
 
-  if (addCards(hands['player']) > addCards(hands['dealer'])) {
-    prompt('Congratulations, you Win!');
-  } else if (addCards(hands['player']) < addCards(hands['dealer'])) {
-    prompt('Dealer Wins!');
-  } else {
-    prompt('TIE GAME!');
+  if (bustWin() === 'player') {
+    return 'You bust! Dealer Wins!';
+  } else if (bustWin() === 'dealer') {
+    return 'Dealer Busted! You Win!';
   }
 
-  return null;
+  if (addCards(hands['player']) > addCards(hands['dealer'])) {
+    return 'Congratulations, you Win!';
+  } else if (addCards(hands['player']) < addCards(hands['dealer'])) {
+    return 'Dealer Wins!';
+  } else {
+    return 'TIE GAME!';
+  }
 }
 
 function bustWin() {
-  if (checkBust(hands, 'player') === true) {
-    prompt('You bust! Dealer Wins!');
-    return true;
-  } else if (checkBust(hands, 'dealer') === true) {
-    prompt("Dealer bust's! You Win!");
-    return true;
-  }
+  if (checkBust(hands, 'player') === true) return 'player';
+  if (checkBust(hands, 'dealer') === true) return 'dealer';
 
   return false;
+}
+
+function finalHands() {
+  prompt('Final hands:');
+  console.log(`Dealer: ${addCards(hands['dealer'])}`);
+  console.log(`You: ${addCards(hands['player'])}`);
 }
 
 while (true) {
@@ -190,7 +195,7 @@ while (true) {
 
     while (hitOrStay(deck, hands, 'player') !== 's') {
       if (checkBust(hands, 'player') || addCards(hands['player']) === MAX) break;
-      
+
       fullBoardDisplay();
     }
 
@@ -210,14 +215,10 @@ while (true) {
 
     fullBoardDisplay(hands['dealer']);
 
-    prompt('Final hands:');
-    console.log(`Dealer: ${addCards(hands['dealer'])}`);
-    console.log(`You: ${addCards(hands['player'])}`);
-
     break;
   }
 
-  sayWinner();
+  prompt(sayWinner());
 
   prompt('Would you like to play again? (y/n)');
   let playAgain = readline.question().toLowerCase().trim();
