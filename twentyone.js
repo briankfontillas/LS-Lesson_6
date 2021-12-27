@@ -1,13 +1,13 @@
 const readline = require('readline-sync');
 const PLAYERS = ['player', 'dealer'];
-const START_HAND = 2;
 const MAX = 21;
 const UNKNOWN = ['?', '?'];
-const SUIT = 0;
 const CARD = 1;
 const SUITS = ['H', 'D', 'C', 'S']; //hearts, diamonds, clubs, spades
 const CARD_VALUES = [2, 3, 4, 5, 6, 7,
-                     8, 9, 10, 'J', 'Q', 'K', 'A'];
+  8, 9, 10, 'J', 'Q', 'K', 'A'];
+let deck;
+let hands;
 
 function prompt(msg) {
   console.log(`=> ${msg}`);
@@ -37,13 +37,13 @@ function shuffleDeck(deck) {
 
 function initializeDeck() { // [[suit, value], [suit, value], ....];
   let deck = [];
-  let card_value = [];
+  let cardValue = [];
 
   for (let suit = 0; suit < SUITS.length; suit += 1) {
     for (let value = 0; value < CARD_VALUES.length; value += 1) {
-      card_value[0] = SUITS[suit];
-      card_value[1] = CARD_VALUES[value];
-      deck.push([card_value[0], card_value[1]]);
+      cardValue[0] = SUITS[suit];
+      cardValue[1] = CARD_VALUES[value];
+      deck.push([cardValue[0], cardValue[1]]);
     }
   }
 
@@ -75,7 +75,6 @@ function hideDealersCard(hand) { //takes dealers hand
 
 function addCards(hand) {
   let currentSum = 0;
-  let count = 0;
   hand = sortAces(hand);
 
   for (let card = 0; card < hand.length; card += 1) {
@@ -83,10 +82,10 @@ function addCards(hand) {
 
     if (!['J', 'Q', 'K', 'A'].includes(value)) currentSum += value;
     if (['J', 'Q', 'K'].includes(value)) currentSum += 10;
-    if (value === 'A' && currentSum + 11 > MAX) {
-      currentSum += 1;
-    } else if (value === 'A' && currentSum + 11 <= MAX) {
+    if (value === 'A' && currentSum + 11 <= MAX) {
       currentSum += 11;
+    } else if (value === 'A' && currentSum + 11 > MAX) {
+      currentSum += 1;
     }
   }
 
@@ -115,8 +114,7 @@ function hitOrStay(deck, hand, currentPlayer) {
 
   if (move === 'h') hit(deck, hand, currentPlayer);
   if (move === 's') {
-    prompt(`${currentPlayer} chooses to stay.`);
-    return move;
+    return null;
   }
 }
 
@@ -146,7 +144,7 @@ function checkBust(hand, currentPlayer) {
 }
 
 function sayWinner() {
-
+  if (bustWin() === true) return null;
 
   if (addCards(hands['player']) > addCards(hands['dealer'])) {
     prompt('Congratulations, you Win!');
@@ -155,25 +153,29 @@ function sayWinner() {
   } else {
     prompt('TIE GAME!');
   }
+
+  return null;
 }
 
-// function bustWin() { ////////FIX
-//   if (checkBust(hands, 'player')) {
-//     prompt('You bust!\nDealer Wins!');
-//     return true;
-//   } else if (!!checkBust(hands, 'dealer')) {
-//     prompt('Dealer busts!\n You Win!');
-//     return true;
-// }
+function bustWin() {
+  if (checkBust(hands, 'player') === true) {
+    prompt('You bust! Dealer Wins!');
+    return true;
+  } else if (checkBust(hands, 'dealer') === true) {
+    prompt("Dealer bust's! You Win!");
+    return true;
+  }
 
-
-let deck = initializeDeck();
-let hands = {
-  dealer: [],
-  player: []
-};
+  return false;
+}
 
 while (true) {
+  deck = initializeDeck();
+  hands = {
+    dealer: [],
+    player: []
+  };
+  console.clear();
   prompt('Lets play 21!');
   console.log('*Best played on full screen');
   console.log('');
@@ -195,30 +197,37 @@ while (true) {
     fullBoardDisplay();
     if (checkBust(hands, 'player')) break;
 
-    while (dealerHits(deck, hands, 'dealer')) {
+    prompt('Dealers turn');
+    proceed = readline.question('Enter anything to continue...');
+
+    while (dealerHits(deck, hands, 'dealer') === true) {
+      fullBoardDisplay();
       prompt("Dealer is choosing to hit!");
+      proceed = readline.question("Enter anything to continue...");
 
       if (checkBust(hands, 'dealer') || addCards(hands['dealer']) === MAX) break;
-
-      proceed = readline.question("Enter anything to continue...");
-      fullBoardDisplay();
     }
 
+    fullBoardDisplay(hands['dealer']);
 
+    prompt('Final hands:');
+    console.log(`Dealer: ${addCards(hands['dealer'])}`);
+    console.log(`You: ${addCards(hands['player'])}`);
 
     break;
   }
 
-  fullBoardDisplay(hands['dealer']);
+  sayWinner();
 
-  // if (!!bustwin()) {// FIX
-  //   bustWin();
-  //   break;
-  // } else {
-  //   sayWinner();
-  //   break;
-  // }
+  prompt('Would you like to play again? (y/n)');
+  let playAgain = readline.question().toLowerCase().trim();
 
+  while (!['y', 'n'].includes(playAgain)) {
+    prompt('That is not a valid answer. Please type y or n: ');
+    playAgain = readline.question();
+  }
+
+  if (playAgain === 'n') break;
 }
 
-console.log(hands);
+prompt('Thank you for playing Twenty-One!');
